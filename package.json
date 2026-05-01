@@ -7,7 +7,8 @@
     "start": "electron .",
     "predist": "npm version patch --no-git-tag-version && node generate-version.js",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder"
+    "dist": "electron-builder",
+    "push-update": "git add . && git commit -m \"chore: build new version\" && git push origin main"
   },
   "build": {
     "appId": "com.voz2026.app",
