@@ -1,0 +1,53 @@
+{
+  "name": "voz-tts-app",
+  "version": "1.0.8",
+  "description": "Aplicación de Text-to-Speech sin API Key con soporte para múltiples voces y acentos en español",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "predist": "npm version patch --no-git-tag-version && node generate-version.js",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.voz2026.app",
+    "productName": "Voz",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "portomare0825",
+        "repo": "voz2026"
+      }
+    ]
+  },
+  "keywords": [
+    "tts",
+    "text-to-speech",
+    "voz",
+    "español",
+    "sin-api",
+    "offline"
+  ],
+  "author": "Voz App Team",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^41.4.0",
+    "electron-builder": "^26.8.1"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.3"
+  }
+}
