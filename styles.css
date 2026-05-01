@@ -719,3 +719,113 @@ body {
 .modal-body {
     padding: 1.5rem;
 }
+
+/* Estilos para el Modal de Actualización (Moderno) */
+.update-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.update-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.update-modal {
+    background: linear-gradient(145deg, rgba(30, 30, 60, 0.9), rgba(20, 20, 40, 0.95));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 28px;
+    padding: 40px;
+    width: 90%;
+    max-width: 420px;
+    text-align: center;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 20px rgba(168, 85, 247, 0.1);
+    transform: translateY(30px) scale(0.9);
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.update-modal-overlay.active .update-modal {
+    transform: translateY(0) scale(1);
+}
+
+.update-icon-container {
+    width: 72px;
+    height: 72px;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    border-radius: 22px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 24px;
+    box-shadow: 0 12px 24px rgba(168, 85, 247, 0.4);
+}
+
+.update-icon-container svg {
+    width: 36px;
+    height: 36px;
+    fill: white;
+}
+
+.update-modal h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    background: linear-gradient(to right, #fff, #cbd5e1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.update-modal p {
+    color: #94a3b8;
+    line-height: 1.6;
+    margin-bottom: 32px;
+    font-size: 15px;
+}
+
+.update-button {
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100%;
+    font-size: 16px;
+    letter-spacing: 0.5px;
+}
+
+.update-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 25px rgba(168, 85, 247, 0.5);
+    filter: brightness(1.1);
+}
+
+.update-button:active {
+    transform: translateY(0);
+}
+
+.update-button.secondary {
+    background: rgba(255, 255, 255, 0.05);
+    margin-top: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.update-button.secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: none;
+    transform: none;
+}

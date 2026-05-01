@@ -1366,3 +1366,38 @@ document.addEventListener('DOMContentLoaded', () => {
 window.addEventListener('error', (e) => {
     console.error('Error global:', e);
 });
+
+// Lógica de Actualización Automática (UI)
+document.addEventListener('DOMContentLoaded', () => {
+    const updateModal = document.getElementById('updateModalOverlay');
+    const updateTitle = document.getElementById('updateModalTitle');
+    const updateMessage = document.getElementById('updateModalMessage');
+    const updateBtn = document.getElementById('updateModalBtn');
+    const secondaryBtn = document.getElementById('updateModalSecondaryBtn');
+
+    if (window.electronAPI) {
+        // 1. Nueva versión detectada
+        window.electronAPI.onUpdateAvailable(() => {
+            updateTitle.textContent = "🚀 Actualización Detectada";
+            updateMessage.textContent = "Una nueva versión de Voz está disponible y se está descargando automáticamente.";
+            updateBtn.textContent = "Entendido";
+            updateBtn.onclick = () => updateModal.classList.remove('active');
+            secondaryBtn.classList.add('hidden');
+            updateModal.classList.add('active');
+        });
+
+        // 2. Descarga completada
+        window.electronAPI.onUpdateDownloaded(() => {
+            updateTitle.textContent = "✨ ¡Todo Listo!";
+            updateMessage.textContent = "La nueva versión se ha descargado. Reinicia la aplicación para disfrutar de las mejoras.";
+            updateBtn.textContent = "Reiniciar y Actualizar Ahora";
+            updateBtn.onclick = () => window.electronAPI.installUpdate();
+            
+            secondaryBtn.textContent = "Más tarde";
+            secondaryBtn.classList.remove('hidden');
+            secondaryBtn.onclick = () => updateModal.classList.remove('active');
+            
+            updateModal.classList.add('active');
+        });
+    }
+});
