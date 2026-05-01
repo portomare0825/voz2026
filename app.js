@@ -1374,6 +1374,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateMessage = document.getElementById('updateModalMessage');
     const updateBtn = document.getElementById('updateModalBtn');
     const secondaryBtn = document.getElementById('updateModalSecondaryBtn');
+    const progressContainer = document.getElementById('updateProgressContainer');
+    const progressBarFill = document.getElementById('updateProgressBarFill');
+    const progressText = document.getElementById('updateProgressText');
 
     if (window.electronAPI) {
         // 1. Nueva versión detectada
@@ -1383,13 +1386,28 @@ document.addEventListener('DOMContentLoaded', () => {
             updateBtn.textContent = "Entendido";
             updateBtn.onclick = () => updateModal.classList.remove('active');
             secondaryBtn.classList.add('hidden');
+            progressContainer.classList.remove('hidden'); // Mostrar barra de progreso
             updateModal.classList.add('active');
         });
 
-        // 2. Descarga completada
+        // 2. Progreso de descarga
+        window.electronAPI.onDownloadProgress((percent) => {
+            const rounded = Math.round(percent);
+            progressBarFill.style.width = `${rounded}%`;
+            progressText.textContent = `Descargando: ${rounded}%`;
+            
+            // Si está descargando, ocultar el botón de "Entendido" para que no lo cierren
+            updateBtn.classList.add('hidden');
+        });
+
+        // 3. Descarga completada
         window.electronAPI.onUpdateDownloaded(() => {
             updateTitle.textContent = "✨ ¡Todo Listo!";
             updateMessage.textContent = "La nueva versión se ha descargado. Reinicia la aplicación para disfrutar de las mejoras.";
+            
+            progressContainer.classList.add('hidden'); // Ocultar barra al terminar
+            
+            updateBtn.classList.remove('hidden');
             updateBtn.textContent = "Reiniciar y Actualizar Ahora";
             updateBtn.onclick = () => window.electronAPI.installUpdate();
             

@@ -16,7 +16,7 @@
                     <h1>Voz</h1>
                 </div>
                 <p class="subtitle">Generador de voz con inteligencia artificial</p>
-                <p class="app-version-info" id="appVersionInfo">v1.0.10 - Actualizado el 1 de mayo de 2026, 12:51</p>
+                <p class="app-version-info" id="appVersionInfo">v1.0.11 - Actualizado el 1 de mayo de 2026, 13:38</p>
             </div>
             <button id="settingsBtn" class="settings-btn" title="Configuración">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -248,6 +248,15 @@ Puedes usar etiquetas especiales como [pausa], [risa], [grito], etc."
             </div>
             <h2 id="updateModalTitle">Actualización Disponible</h2>
             <p id="updateModalMessage">Una nueva versión de Voz ha sido detectada y está siendo descargada en segundo plano.</p>
+            
+            <!-- Barra de Progreso -->
+            <div id="updateProgressContainer" class="update-progress-container hidden">
+                <div class="update-progress-bar">
+                    <div id="updateProgressBarFill" class="update-progress-fill"></div>
+                </div>
+                <div id="updateProgressText" class="update-progress-text">Descargando: 0%</div>
+            </div>
+
             <button id="updateModalBtn" class="update-button">Entendido</button>
             <button id="updateModalSecondaryBtn" class="update-button secondary hidden">Más tarde</button>
         </div>

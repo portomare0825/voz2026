@@ -1,13 +1,13 @@
 {
   "name": "voz-tts-app",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Aplicación de Text-to-Speech sin API Key con soporte para múltiples voces y acentos en español",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "predist": "npm version patch --no-git-tag-version && node generate-version.js",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder",
+    "dist": "electron-builder --publish always",
     "push-update": "git add . && git commit -m \"chore: build new version\" && git push origin main"
   },
   "build": {
