@@ -1,6 +1,6 @@
 {
   "name": "voz-tts-app",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Aplicación de Text-to-Speech sin API Key con soporte para múltiples voces y acentos en español",
   "main": "main.js",
   "scripts": {
