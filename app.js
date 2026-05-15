@@ -88,6 +88,7 @@ class TextToSpeechApp {
         this.diagnosticBtn = document.getElementById('diagnosticBtn');
         this.copyBtn = document.getElementById('copyBtn');
         this.clearBtn = document.getElementById('clearBtn');
+        this.plainTextBtn = document.getElementById('plainTextBtn');
         this.progressBar = document.getElementById('progressBar');
         this.progressFill = document.getElementById('progressFill');
         this.currentTimeEl = document.getElementById('currentTime');
@@ -115,6 +116,7 @@ class TextToSpeechApp {
         this.diagnosticBtn.addEventListener('click', () => this.audioDiagnostic());
         this.copyBtn.addEventListener('click', () => this.copyText());
         this.clearBtn.addEventListener('click', () => this.clearText());
+        this.plainTextBtn.addEventListener('click', () => this.stripToPlainText());
         
         // Habilitar/deshabilitar botón play según el texto
         this.textInput.addEventListener('input', () => this.updatePlayPauseButtonState());
@@ -941,6 +943,92 @@ class TextToSpeechApp {
             this.clearBtn.style.color = '';
             this.clearBtn.style.borderColor = '';
         }, 1500);
+    }
+
+    stripToPlainText() {
+        const text = this.textInput.value;
+
+        if (!text.trim()) {
+            this.showStatus('El campo de texto está vacío', 'info');
+            setTimeout(() => this.hideStatus(), 1500);
+            return;
+        }
+
+        let plain = text;
+
+        // Eliminar bloques de código con triple backtick
+        plain = plain.replace(/```[\s\S]*?```/g, '');
+
+        // Eliminar código inline con backtick simple
+        plain = plain.replace(/`([^`]*)`/g, '$1');
+
+        // Eliminar negritas y cursivas con asteriscos triples
+        plain = plain.replace(/\*\*\*([^*]+)\*\*\*/g, '$1');
+
+        // Eliminar negritas con doble asterisco
+        plain = plain.replace(/\*\*([^*]+)\*\*/g, '$1');
+
+        // Eliminar negritas con doble guion bajo
+        plain = plain.replace(/__([^_]+)__/g, '$1');
+
+        // Eliminar cursivas con asterisco simple
+        plain = plain.replace(/\*([^*]+)\*/g, '$1');
+
+        // Eliminar cursivas con guion bajo simple
+        plain = plain.replace(/_([^_]+)_/g, '$1');
+
+        // Eliminar tachado con doble tilde
+        plain = plain.replace(/~~([^~]+)~~/g, '$1');
+
+        // Eliminar encabezados Markdown (# ## ### etc.)
+        plain = plain.replace(/^#{1,6}\s+/gm, '');
+
+        // Eliminar citas (> al inicio de línea)
+        plain = plain.replace(/^>\s*/gm, '');
+
+        // Eliminar listas con guion, asterisco o número
+        plain = plain.replace(/^[\-\*\+]\s+/gm, '');
+        plain = plain.replace(/^\d+\.\s+/gm, '');
+
+        // Eliminar líneas horizontales (--- o ***)
+        plain = plain.replace(/^[-\*]{3,}\s*$/gm, '');
+
+        // Eliminar links Markdown [texto](url) -> solo el texto
+        plain = plain.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
+
+        // Eliminar imágenes Markdown ![alt](url)
+        plain = plain.replace(/!\[[^\]]*\]\([^\)]+\)/g, '');
+
+        // Eliminar HTML simple que pudiera haber
+        plain = plain.replace(/<[^>]+>/g, '');
+
+        // Limpiar espacios múltiples y líneas en blanco excesivas
+        plain = plain.replace(/\r\n/g, '\n');
+        plain = plain.replace(/\n{3,}/g, '\n\n');
+        plain = plain.replace(/[ \t]+/g, ' ');
+        plain = plain.trim();
+
+        if (plain === text.trim()) {
+            this.showStatus('El texto ya está en formato plano', 'info');
+            setTimeout(() => this.hideStatus(), 2000);
+            return;
+        }
+
+        this.textInput.value = plain;
+        this.updatePlayPauseButtonState();
+
+        // Efecto visual en el botón
+        this.plainTextBtn.style.color = 'var(--success-color)';
+        this.plainTextBtn.style.borderColor = 'var(--success-color)';
+
+        console.log('Formato eliminado. Texto convertido a texto plano.');
+        this.showStatus('Formato eliminado. Texto plano listo.', 'success');
+
+        setTimeout(() => {
+            this.hideStatus();
+            this.plainTextBtn.style.color = '';
+            this.plainTextBtn.style.borderColor = '';
+        }, 2000);
     }
 
     // Toggle Play/Pause
