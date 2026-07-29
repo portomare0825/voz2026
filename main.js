@@ -48,6 +48,9 @@ function createWindow() {
   });
 }
 
+// Desactivar aceleración de hardware para evitar crashes de GPU en algunas computadoras
+app.disableHardwareAcceleration();
+
 app.whenReady().then(() => {
   createWindow();
   autoUpdater.checkForUpdatesAndNotify();
