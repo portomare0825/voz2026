@@ -50,6 +50,12 @@ function createWindow() {
 
 // Desactivar aceleración de hardware para evitar crashes de GPU en algunas computadoras
 app.disableHardwareAcceleration();
+app.commandLine.appendSwitch('disable-gpu');
+app.commandLine.appendSwitch('disable-software-rasterizer');
+app.commandLine.appendSwitch('disable-gpu-compositing');
+app.commandLine.appendSwitch('disable-gpu-rasterization');
+app.commandLine.appendSwitch('disable-gpu-sandbox');
+app.commandLine.appendSwitch('--no-sandbox');
 
 app.whenReady().then(() => {
   createWindow();
