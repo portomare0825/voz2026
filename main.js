@@ -1,7 +1,30 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
+const fs = require('fs');
 
+// Leer .env.local
+let envConfig = {};
+const envPath = path.join(__dirname, '.env.local');
+if (fs.existsSync(envPath)) {
+  let envContent = fs.readFileSync(envPath, 'utf8');
+  // Eliminar BOM si existe
+  if (envContent.charCodeAt(0) === 0xFEFF) {
+    envContent = envContent.slice(1);
+  }
+  envContent.split(/\r?\n/).forEach(line => {
+    const match = line.match(/^\s*([^=]+?)\s*=\s*(.*)\s*$/);
+    if (match) {
+      // Eliminar comillas si las hay
+      let val = match[2].trim();
+      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+          val = val.substring(1, val.length - 1);
+      }
+      envConfig[match[1].trim()] = val;
+    }
+  });
+  console.log("Cargado .env.local, claves:", Object.keys(envConfig));
+}
 let mainWindow;
 
 function createWindow() {
@@ -54,4 +77,9 @@ ipcMain.on('install-update', () => {
 
 autoUpdater.on('error', (err) => {
   console.log('Error en auto-updater:', err);
+});
+
+// Exponer variables de entorno
+ipcMain.handle('get-env', () => {
+  return envConfig;
 });

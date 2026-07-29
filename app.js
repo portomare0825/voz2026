@@ -14,6 +14,18 @@ class TextToSpeechApp {
         this.elapsedTime = 0;
         this.estimatedDuration = 0;
         this.progressInterval = null;
+        this.envConfig = {};
+        this.audioElement = new Audio();
+        
+        // Manejadores para audioElement
+        this.audioElement.addEventListener('timeupdate', () => {
+            if (!this.audioElement.paused && this.audioElement.duration) {
+                this.elapsedTime = this.audioElement.currentTime;
+                this.updateProgressUI(this.elapsedTime, this.audioElement.duration);
+            }
+        });
+        
+        // El evento ended ya es manejado individualmente en speakChunkGoogle
         
         // Configuración de voces predefinidas con mapeo a voces reales del sistema
         this.voiceProfiles = [
@@ -54,12 +66,35 @@ class TextToSpeechApp {
         console.log('═══════════════════════════════════════\n');
         
         await this.loadVoices();
+        
+        if (window.electronAPI && window.electronAPI.getEnv) {
+            this.envConfig = await window.electronAPI.getEnv();
+        }
+        
+        this.updateEngineStatus();
+        window.addEventListener('online', () => this.updateEngineStatus());
+        window.addEventListener('offline', () => this.updateEngineStatus());
+        
         this.renderHistory();
         this.updateUI();
         this.updatePlayPauseButtonState(); // Estado inicial del botón
         this.loadVersionInfo(); // Cargar la versión de la aplicación
         
         console.log('✅ APLICACIÓN LISTA PARA USAR\n');
+    }
+
+    updateEngineStatus() {
+        const engineDot = document.getElementById('engineStatusDot');
+        const engineText = document.getElementById('engineStatusText');
+        if (engineDot && engineText) {
+            if (navigator.onLine && this.envConfig && this.envConfig.GOOGLE_API_KEY) {
+                engineDot.className = 'engine-dot online';
+                engineText.textContent = 'Motor: Google (Online)';
+            } else {
+                engineDot.className = 'engine-dot offline';
+                engineText.textContent = 'Motor: Local (Offline)';
+            }
+        }
     }
 
     async loadVersionInfo() {
@@ -624,6 +659,10 @@ class TextToSpeechApp {
             if (this.synth) {
                 this.synth.cancel();
             }
+            if (this.audioElement) {
+                this.audioElement.pause();
+                this.audioElement.currentTime = 0;
+            }
             
             // Pausa breve para asegurar que se canceló
             await new Promise(resolve => setTimeout(resolve, 100));
@@ -711,7 +750,19 @@ class TextToSpeechApp {
                 console.log(`\n--- Fragmento ${i + 1}/${textChunks.length} ---`);
                 console.log('Texto:', chunk.substring(0, 60) + '...');
                 
-                const success = await this.speakChunk(chunk, actualVoice, modifiers);
+                let success = false;
+                const useGoogle = navigator.onLine && this.envConfig && this.envConfig.GOOGLE_API_KEY;
+                
+                if (useGoogle) {
+                    try {
+                        success = await this.speakChunkGoogle(chunk, voiceProfile, speed, pitch);
+                    } catch (e) {
+                        console.error('Error usando Google TTS, cayendo a local...', e);
+                        success = await this.speakChunk(chunk, actualVoice, modifiers);
+                    }
+                } else {
+                    success = await this.speakChunk(chunk, actualVoice, modifiers);
+                }
                 
                 if (!success || this.shouldStop) {
                     console.log('⚠️ Interrupción detectada, deteniendo...');
@@ -736,6 +787,83 @@ class TextToSpeechApp {
             this.showStatus('❌ Error: ' + error.message, 'error');
             this.resetProgress();
         }
+    }
+
+    getGoogleVoiceName(voiceProfile) {
+        // Mapeo básico de perfiles a voces de Google Cloud
+        if (voiceProfile.gender === 'male') {
+            if (voiceProfile.accent === 'spain') return 'es-ES-Neural2-B';
+            if (voiceProfile.accent === 'mexico') return 'es-US-Neural2-B'; // Aproximación
+            return 'es-ES-Neural2-B';
+        } else {
+            if (voiceProfile.accent === 'spain') return 'es-ES-Neural2-A';
+            if (voiceProfile.accent === 'mexico') return 'es-US-Neural2-A'; // Aproximación
+            return 'es-ES-Neural2-C';
+        }
+    }
+
+    async speakChunkGoogle(text, voiceProfile, speed, pitch) {
+        return new Promise(async (resolve, reject) => {
+            if (this.shouldStop) {
+                resolve(false);
+                return;
+            }
+
+            try {
+                const apiKey = this.envConfig.GOOGLE_API_KEY;
+                const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
+                
+                const googlePitch = (pitch - 1.0) * 10.0; // Mapear 0-2 a -20.0 to 20.0
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        input: { text: text },
+                        voice: { 
+                            languageCode: voiceProfile.accent === 'spain' ? 'es-ES' : 'es-US', 
+                            name: this.getGoogleVoiceName(voiceProfile) 
+                        },
+                        audioConfig: { 
+                            audioEncoding: 'MP3',
+                            speakingRate: speed,
+                            pitch: googlePitch
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Google TTS Error Response:', errorText);
+                    this.showStatus('Fallo en API de Google. Usando voz local.', 'warning');
+                    throw new Error('Google TTS API Error: ' + response.status);
+                }
+
+                const data = await response.json();
+                
+                // Reproducir el audio
+                const audioUrl = `data:audio/mp3;base64,${data.audioContent}`;
+                this.audioElement.src = audioUrl;
+                
+                this.audioElement.onended = () => {
+                    resolve(true);
+                };
+                
+                this.audioElement.onerror = () => {
+                    resolve(false);
+                };
+
+                await this.audioElement.play();
+                
+                // Si el usuario pausó justo mientras iniciaba
+                if (this.isPaused) {
+                    this.audioElement.pause();
+                }
+
+            } catch (err) {
+                reject(err);
+            }
+        });
     }
 
     speakChunk(text, voice, modifiers) {
@@ -871,6 +999,12 @@ class TextToSpeechApp {
         if (this.synth) {
             this.synth.cancel();
             console.log('✅ synth.cancel() ejecutado');
+        }
+        
+        if (this.audioElement) {
+            this.audioElement.pause();
+            this.audioElement.currentTime = 0;
+            console.log('✅ audioElement detenido');
         }
         
         // Resetear progreso
@@ -1033,12 +1167,33 @@ class TextToSpeechApp {
 
     // Toggle Play/Pause
     async togglePlayPause() {
+        const useGoogle = navigator.onLine && this.envConfig && this.envConfig.GOOGLE_API_KEY;
+
         if (this.isSpeaking && !this.isPaused) {
             // Pausar
-            this.pauseSpeech();
+            if (useGoogle && this.audioElement) {
+                this.audioElement.pause();
+                this.isPaused = true;
+                this.playPauseIcon.textContent = '▶️';
+                this.playPauseText.textContent = 'Reanudar';
+                this.playPauseBtn.classList.remove('playing');
+                if (this.progressInterval) clearInterval(this.progressInterval);
+                this.showStatus('⏸️ Audio pausado', 'info');
+            } else {
+                this.pauseSpeech();
+            }
         } else if (this.isPaused) {
             // Reanudar
-            this.resumeSpeech();
+            if (useGoogle && this.audioElement) {
+                this.audioElement.play();
+                this.isPaused = false;
+                this.playPauseIcon.textContent = '⏸️';
+                this.playPauseText.textContent = 'Pausar';
+                this.playPauseBtn.classList.add('playing');
+                this.showStatus('▶️ Reproduciendo...', 'success');
+            } else {
+                this.resumeSpeech();
+            }
         } else {
             // Iniciar reproducción
             await this.generateSpeech();

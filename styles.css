@@ -101,6 +101,32 @@ body {
     margin-bottom: 2px;
 }
 
+.engine-status-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.2rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.engine-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.engine-dot.online {
+    background-color: #4ade80;
+    box-shadow: 0 0 5px #4ade80;
+}
+
+.engine-dot.offline {
+    background-color: #f87171;
+    box-shadow: 0 0 5px #f87171;
+}
+
 .app-version-info {
     font-size: 0.75rem;
     color: var(--accent-purple);
