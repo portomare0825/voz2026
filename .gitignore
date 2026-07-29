@@ -1,5 +1,6 @@
 node_modules/
 .env
+.env.local
 .DS_Store
 
 # Archivos compilados - se distribuyen via GitHub Releases
